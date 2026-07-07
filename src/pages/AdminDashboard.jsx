@@ -85,8 +85,9 @@ export default function AdminDashboard() {
             <CardTitle>Recent Package Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <table className="w-full text-sm text-left" data-testid="admin-package-bookings-table">
-              <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left whitespace-nowrap" data-testid="admin-package-bookings-table">
+                <thead>
                 <tr className="border-b">
                   <th className="pb-3 font-medium text-muted-foreground">Booking ID</th>
                   <th className="pb-3 font-medium text-muted-foreground">Package</th>
@@ -114,6 +115,7 @@ export default function AdminDashboard() {
                 )}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
 
@@ -122,8 +124,9 @@ export default function AdminDashboard() {
             <CardTitle>Recent Enquiries</CardTitle>
           </CardHeader>
           <CardContent>
-            <table className="w-full text-sm text-left" data-testid="admin-package-enquiries-table">
-              <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left whitespace-nowrap" data-testid="admin-package-enquiries-table">
+                <thead>
                 <tr className="border-b">
                   <th className="pb-3 font-medium text-muted-foreground">Enquiry ID</th>
                   <th className="pb-3 font-medium text-muted-foreground">Package</th>
@@ -151,6 +154,7 @@ export default function AdminDashboard() {
                 )}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
       </div>

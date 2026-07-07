@@ -69,7 +69,7 @@ export default function TestingPlayground() {
                 <CardTitle>Data Table</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-md">
+                <div className="border rounded-md overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/50 text-left">
