@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { flights } from "@/data/flights";
 import { FlightCard } from "@/components/flights/FlightCard";
 import { Input } from "@/components/ui/input";
@@ -8,13 +9,55 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Flights() {
   const { toast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [selectedAirlines, setSelectedAirlines] = useState([]);
+  const [selectedStops, setSelectedStops] = useState([]);
+  const [sortBy, setSortBy] = useState("Cheapest First");
 
-  const filteredFlights = flights.filter(flight => 
-    flight.origin.toLowerCase().includes(origin.toLowerCase()) &&
-    flight.destination.toLowerCase().includes(destination.toLowerCase())
-  );
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("search")) {
+      setDestination(params.get("search"));
+    }
+  }, [location.search]);
+
+  const filteredFlights = flights.filter(flight => {
+    const matchOrigin = flight.origin.toLowerCase().includes(origin.toLowerCase());
+    const matchDest = flight.destination.toLowerCase().includes(destination.toLowerCase());
+    const matchAirline = selectedAirlines.length === 0 || selectedAirlines.includes(flight.airline);
+    const matchStops = selectedStops.length === 0 || selectedStops.includes(flight.stops);
+    return matchOrigin && matchDest && matchAirline && matchStops;
+  }).sort((a, b) => {
+    if (sortBy === "Cheapest First") return a.price - b.price;
+    if (sortBy === "Fastest First") {
+      const durationA = parseInt(a.duration.split('h')[0]) * 60 + parseInt(a.duration.split(' ')[1].split('m')[0]);
+      const durationB = parseInt(b.duration.split('h')[0]) * 60 + parseInt(b.duration.split(' ')[1].split('m')[0]);
+      return durationA - durationB;
+    }
+    if (sortBy === "Early Departure") return new Date(a.departureTime) - new Date(b.departureTime);
+    if (sortBy === "Late Departure") return new Date(b.departureTime) - new Date(a.departureTime);
+    return 0;
+  });
+
+  const resetFilters = () => {
+    setOrigin("");
+    setDestination("");
+    setSelectedAirlines([]);
+    setSelectedStops([]);
+    navigate("/flights");
+    // Checkboxes are now controlled
+  };
+
+  const handleAirlineChange = (airline) => {
+    setSelectedAirlines(prev => prev.includes(airline) ? prev.filter(a => a !== airline) : [...prev, airline]);
+  };
+
+  const handleStopChange = (stop) => {
+    setSelectedStops(prev => prev.includes(stop) ? prev.filter(s => s !== stop) : [...prev, stop]);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -50,7 +93,8 @@ export default function Flights() {
           
           <div className="flex-1 w-full">
             <Input 
-              type="date"
+              type="text"
+              placeholder="MM-DD-YYYY"
               className="h-12 text-lg bg-background"
             />
           </div>
@@ -71,7 +115,12 @@ export default function Flights() {
               <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase">Airlines</h4>
               {['IndiGo', 'Air India', 'SpiceJet', 'Vistara'].map(airline => (
                 <label key={airline} className="flex items-center gap-2 mb-2 cursor-pointer text-sm">
-                  <input type="checkbox" className="rounded border-input text-primary focus:ring-primary accent-primary" />
+                  <input 
+                    type="checkbox" 
+                    checked={selectedAirlines.includes(airline)}
+                    onChange={() => handleAirlineChange(airline)}
+                    className="rounded border-input text-primary focus:ring-primary accent-primary" 
+                  />
                   <span>{airline}</span>
                 </label>
               ))}
@@ -81,13 +130,18 @@ export default function Flights() {
               <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase">Stops</h4>
               {['Non-stop', '1 Stop', '2+ Stops'].map(stop => (
                 <label key={stop} className="flex items-center gap-2 mb-2 cursor-pointer text-sm">
-                  <input type="checkbox" className="rounded border-input text-primary focus:ring-primary accent-primary" />
+                  <input 
+                    type="checkbox" 
+                    checked={selectedStops.includes(stop)}
+                    onChange={() => handleStopChange(stop)}
+                    className="rounded border-input text-primary focus:ring-primary accent-primary" 
+                  />
                   <span>{stop}</span>
                 </label>
               ))}
             </div>
             
-            <Button variant="outline" className="w-full">Reset Filters</Button>
+            <Button variant="outline" className="w-full" onClick={resetFilters} data-testid="flight-reset-filters">Reset Filters</Button>
           </div>
         </div>
 
@@ -95,7 +149,11 @@ export default function Flights() {
         <div className="w-full lg:w-3/4">
           <div className="mb-4 flex justify-between items-center text-sm text-muted-foreground">
             <span>Showing {filteredFlights.length} flights</span>
-            <select className="bg-background border rounded-md p-2 outline-none focus:ring-1 focus:ring-primary">
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-background border rounded-md p-2 outline-none focus:ring-1 focus:ring-primary"
+            >
               <option>Cheapest First</option>
               <option>Fastest First</option>
               <option>Early Departure</option>

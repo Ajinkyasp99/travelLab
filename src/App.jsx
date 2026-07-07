@@ -20,6 +20,7 @@ import MyTrips from "./pages/MyTrips";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import TestingPlayground from "./pages/TestingPlayground";
+import DestinationDetail from "./pages/DestinationDetail";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="destinations/:name" element={<DestinationDetail />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
           <Route path="hotels" element={<Hotels />} />

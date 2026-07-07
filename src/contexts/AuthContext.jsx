@@ -21,6 +21,73 @@ export function AuthProvider({ children }) {
       localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
     }
 
+    // Initialize mock bookings for tester
+    const existingBookings = localStorage.getItem("travel_test_lab_bookings");
+    if (!existingBookings) {
+      const defaultBookings = [
+        {
+          id: "BKG-FL-492817",
+          userId: 1,
+          date: "2025-10-15T10:00:00Z",
+          status: "Confirmed",
+          amount: 15400,
+          details: { type: "flight" }
+        },
+        {
+          id: "BKG-HT-819234",
+          userId: 1,
+          date: "2025-11-05T14:30:00Z",
+          status: "Confirmed",
+          amount: 8500,
+          details: { type: "hotel" }
+        },
+        {
+          bookingId: "BKG-PKG-112233",
+          userId: 1,
+          bookingType: "holiday_package",
+          packageTitle: "Enchanting Goa - 5 Days",
+          destination: "Goa",
+          travelDate: "2025-12-20T00:00:00Z",
+          status: "Confirmed",
+          totalAmount: 24000,
+          travellers: [{ name: "Tester", age: 30, gender: "Male" }]
+        }
+      ];
+      localStorage.setItem("travel_test_lab_bookings", JSON.stringify(defaultBookings));
+    }
+
+    // Initialize mock enquiries for admin dashboard
+    const existingEnquiries = localStorage.getItem("travel_lab_package_enquiries");
+    if (!existingEnquiries) {
+      const defaultEnquiries = [
+        {
+          enquiryId: "ENQ-7391",
+          packageId: "pkg4",
+          packageTitle: "Dazzling Dubai - 5 Days",
+          name: "John Doe",
+          email: "john@example.com",
+          phone: "9876543210",
+          travelDate: "2026-01-15",
+          travellers: 2,
+          budget: 8000,
+          status: "Pending"
+        },
+        {
+          enquiryId: "ENQ-1928",
+          packageId: "pkg1",
+          packageTitle: "Enchanting Goa - 5 Days",
+          name: "Jane Smith",
+          email: "jane@example.com",
+          phone: "9123456780",
+          travelDate: "2026-02-10",
+          travellers: 4,
+          budget: 5000,
+          status: "Responded"
+        }
+      ];
+      localStorage.setItem("travel_lab_package_enquiries", JSON.stringify(defaultEnquiries));
+    }
+
     // Check for logged in user
     const savedUser = localStorage.getItem(CURRENT_USER_KEY);
     if (savedUser) {

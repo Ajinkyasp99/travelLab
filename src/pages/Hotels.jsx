@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { hotels } from "@/data/hotels";
 import { HotelCard } from "@/components/hotels/HotelCard";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,48 @@ import { Search, SlidersHorizontal, Star } from "lucide-react";
 
 export default function Hotels() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState(10000);
+  const [selectedStars, setSelectedStars] = useState([]);
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [sortBy, setSortBy] = useState("Recommended");
 
-  const filteredHotels = hotels.filter(hotel => 
-    hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    hotel.pricePerNight <= priceFilter
-  );
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("search")) {
+      setSearchQuery(params.get("search"));
+    }
+  }, [location.search]);
+
+  const filteredHotels = hotels.filter(hotel => {
+    const matchSearch = hotel.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchPrice = hotel.pricePerNight <= priceFilter;
+    const matchStars = selectedStars.length === 0 || selectedStars.includes(hotel.starRating);
+    const matchAmenities = selectedAmenities.length === 0 || selectedAmenities.every(a => hotel.amenities.includes(a));
+    return matchSearch && matchPrice && matchStars && matchAmenities;
+  }).sort((a, b) => {
+    if (sortBy === "Price: Low to High") return a.pricePerNight - b.pricePerNight;
+    if (sortBy === "Price: High to Low") return b.pricePerNight - a.pricePerNight;
+    if (sortBy === "Rating: High to Low") return parseFloat(b.userRating) - parseFloat(a.userRating);
+    return 0; // Recommended
+  });
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setPriceFilter(10000);
+    setSelectedStars([]);
+    setSelectedAmenities([]);
+    navigate("/hotels");
+  };
+
+  const handleStarChange = (star) => {
+    setSelectedStars(prev => prev.includes(star) ? prev.filter(s => s !== star) : [...prev, star]);
+  };
+
+  const handleAmenityChange = (amenity) => {
+    setSelectedAmenities(prev => prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -62,7 +97,12 @@ export default function Hotels() {
               <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase">Star Rating</h4>
               {[5, 4, 3].map(star => (
                 <label key={star} className="flex items-center gap-2 mb-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-input text-primary focus:ring-primary accent-primary" />
+                  <input 
+                    type="checkbox" 
+                    checked={selectedStars.includes(star)}
+                    onChange={() => handleStarChange(star)}
+                    className="rounded border-input text-primary focus:ring-primary accent-primary" 
+                  />
                   <span className="flex text-yellow-500">
                     {Array.from({ length: star }).map((_, i) => <Star key={i} size={14} className="fill-current"/>)}
                   </span>
@@ -74,13 +114,18 @@ export default function Hotels() {
               <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase">Amenities</h4>
               {['Free WiFi', 'Pool', 'Spa', 'Restaurant'].map(amenity => (
                 <label key={amenity} className="flex items-center gap-2 mb-2 cursor-pointer text-sm">
-                  <input type="checkbox" className="rounded border-input text-primary focus:ring-primary accent-primary" />
+                  <input 
+                    type="checkbox" 
+                    checked={selectedAmenities.includes(amenity)}
+                    onChange={() => handleAmenityChange(amenity)}
+                    className="rounded border-input text-primary focus:ring-primary accent-primary" 
+                  />
                   <span>{amenity}</span>
                 </label>
               ))}
             </div>
             
-            <Button variant="outline" className="w-full">Reset Filters</Button>
+            <Button variant="outline" className="w-full" onClick={resetFilters} data-testid="hotel-reset-filters">Reset Filters</Button>
           </div>
         </div>
 
@@ -88,7 +133,11 @@ export default function Hotels() {
         <div className="w-full lg:w-3/4">
           <div className="mb-4 flex justify-between items-center text-sm text-muted-foreground">
             <span>Showing {filteredHotels.length} properties</span>
-            <select className="bg-background border rounded-md p-2 outline-none focus:ring-1 focus:ring-primary">
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-background border rounded-md p-2 outline-none focus:ring-1 focus:ring-primary"
+            >
               <option>Recommended</option>
               <option>Price: Low to High</option>
               <option>Price: High to Low</option>

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Star, MapPin, Clock, Calendar as CalendarIcon, Check, X, Shield, Plane, Utensils, Bed, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HolidayPackageCard } from "@/components/packages/HolidayPackageCard";
 import { holidayPackages } from "@/data/holidayPackages";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +15,7 @@ export default function HolidayPackageDetailPage() {
   
   const pkg = holidayPackages?.find(p => p.id === packageId);
   const [selectedDate, setSelectedDate] = useState(pkg?.availableDates?.[0] || "");
+  const [activeTab, setActiveTab] = useState("overview");
   const [openAccordion, setOpenAccordion] = useState(null);
 
   if (!pkg) {
@@ -48,242 +48,283 @@ export default function HolidayPackageDetailPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      {/* Header & Gallery */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">{pkg.category}</span>
-              <span className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                <MapPin size={14} /> {pkg.destination}, {pkg.country}
-              </span>
+    <div className="bg-background pb-12">
+      {/* Immersive Edge-to-Edge Hero Banner */}
+      <div className="relative w-full h-[60vh] min-h-[400px] mb-8">
+        <img 
+          src={pkg.image} 
+          alt={pkg.title} 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end">
+          <div className="container mx-auto px-4 pb-12 w-full max-w-7xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+              <div className="text-white">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg">{pkg.category}</span>
+                  <span className="flex items-center gap-1 text-sm font-medium bg-black/30 backdrop-blur-md px-3 py-1 rounded-full">
+                    <MapPin size={14} /> {pkg.destination}, {pkg.country}
+                  </span>
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-md" data-testid="package-detail-title">{pkg.title}</h1>
+                <div className="flex flex-wrap items-center gap-4 text-sm md:text-base font-medium drop-shadow-sm">
+                  <span className="flex items-center gap-1 text-yellow-400 font-bold bg-black/40 px-3 py-1.5 rounded-full" data-testid="package-detail-rating">
+                    <Star size={16} className="fill-current" /> {pkg.rating} ({pkg.reviewCount} Reviews)
+                  </span>
+                  <span className="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-full">
+                    <Clock size={16} /> {pkg.durationDays} Days / {pkg.durationNights} Nights
+                  </span>
+                </div>
+              </div>
+              
+              <div className="bg-background/95 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border text-foreground w-full md:w-80 flex flex-col justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground uppercase font-bold mb-1 tracking-wider">Starting From</p>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <p className="text-4xl font-extrabold text-primary" data-testid="package-detail-price">₹{pkg.pricePerPerson.toLocaleString()}</p>
+                  </div>
+                  {pkg.originalPrice > pkg.pricePerPerson && (
+                    <p className="text-sm text-muted-foreground line-through mb-1">₹{pkg.originalPrice.toLocaleString()}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mb-4">per person on twin sharing</p>
+                </div>
+                <Button onClick={handleWishlist} variant="outline" className="w-full border-primary/50 hover:bg-primary/5 font-semibold">
+                  Save to Wishlist
+                </Button>
+              </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-3" data-testid="package-detail-title">{pkg.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
-              <span className="flex items-center gap-1 text-yellow-500" data-testid="package-detail-rating">
-                <Star size={16} className="fill-current" /> {pkg.rating} ({pkg.reviewCount} Reviews)
-              </span>
-              <span className="flex items-center gap-1 text-muted-foreground">
-                <Clock size={16} /> {pkg.durationDays} Days / {pkg.durationNights} Nights
-              </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          
+          {/* Left Main Content */}
+          <div className="lg:col-span-2">
+            
+            {/* Custom Tabs */}
+            <div className="flex overflow-x-auto gap-2 border-b mb-8 no-scrollbar pb-2">
+              {["overview", "itinerary", "policies"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-6 py-3 font-semibold text-sm transition-all rounded-t-lg capitalize whitespace-nowrap ${
+                    activeTab === tab 
+                    ? "bg-primary text-primary-foreground shadow-md" 
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Contents */}
+            <div className="min-h-[500px]">
+              
+              {/* Overview Tab */}
+              {activeTab === "overview" && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                  <section>
+                    <h2 className="text-2xl font-bold mb-4">About This Package</h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed">{pkg.description}</p>
+                  </section>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-5 bg-card rounded-xl border shadow-sm flex flex-col items-center justify-center text-center transition-transform hover:-translate-y-1">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                        <Bed className="text-primary" size={24} />
+                      </div>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">Hotel</p>
+                      <p className="font-semibold">{pkg.hotelCategory}</p>
+                    </div>
+                    <div className="p-5 bg-card rounded-xl border shadow-sm flex flex-col items-center justify-center text-center transition-transform hover:-translate-y-1">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                        <Utensils className="text-primary" size={24} />
+                      </div>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">Meals</p>
+                      <p className="font-semibold">{pkg.mealPlan}</p>
+                    </div>
+                    <div className="p-5 bg-card rounded-xl border shadow-sm flex flex-col items-center justify-center text-center transition-transform hover:-translate-y-1">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                        <Plane className="text-primary" size={24} />
+                      </div>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">Flights</p>
+                      <p className="font-semibold">{pkg.flightIncluded ? "Included" : "Excluded"}</p>
+                    </div>
+                    <div className="p-5 bg-card rounded-xl border shadow-sm flex flex-col items-center justify-center text-center transition-transform hover:-translate-y-1">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                        <Shield className="text-primary" size={24} />
+                      </div>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">Type</p>
+                      <p className="font-semibold">{pkg.packageType}</p>
+                    </div>
+                  </div>
+
+                  <section>
+                    <h2 className="text-2xl font-bold mb-6">Key Highlights</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {pkg.highlights?.map((highlight, idx) => (
+                        <div key={idx} className="flex gap-3 bg-muted/20 p-4 rounded-lg border border-border/50">
+                          <Check className="text-primary shrink-0 mt-0.5" size={20} />
+                          <span className="text-sm font-medium leading-relaxed">{highlight}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                  
+                  {pkg.gallery?.length > 0 && (
+                    <section>
+                      <h2 className="text-2xl font-bold mb-6">Gallery</h2>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {pkg.gallery.slice(0, 4).map((img, idx) => (
+                          <div key={idx} className="aspect-square rounded-xl overflow-hidden shadow-sm group relative">
+                            <img src={img} alt="gallery" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              )}
+
+              {/* Itinerary Tab */}
+              {activeTab === "itinerary" && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <h2 className="text-2xl font-bold mb-6">Day-by-Day Itinerary</h2>
+                  <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent" data-testid="package-itinerary-accordion">
+                    {pkg.itinerary?.map((day, idx) => (
+                      <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-primary text-primary-foreground font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-md z-10">
+                          {day.day}
+                        </div>
+                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow">
+                          <button 
+                            className="w-full flex items-center justify-between text-left"
+                            onClick={() => setOpenAccordion(openAccordion === idx ? null : idx)}
+                          >
+                            <h3 className="font-bold text-lg">{day.title}</h3>
+                            <span className="text-primary font-bold ml-2">{openAccordion === idx ? "-" : "+"}</span>
+                          </button>
+                          {openAccordion === idx && (
+                            <div className="mt-4 pt-4 border-t text-muted-foreground text-sm leading-relaxed animate-in fade-in slide-in-from-top-2">
+                              {day.activities}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Policies Tab */}
+              {activeTab === "policies" && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                  <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                      <Check className="text-green-500" /> What's Included
+                    </h2>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                      {pkg.inclusions?.map((inc, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-sm">
+                          <Check className="text-green-500 shrink-0 mt-0.5" size={16} />
+                          <span className="leading-tight">{inc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                  
+                  <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                      <X className="text-red-500" /> What's Excluded
+                    </h2>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                      {pkg.exclusions?.map((exc, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-sm">
+                          <X className="text-red-500 shrink-0 mt-0.5" size={16} />
+                          <span className="leading-tight text-muted-foreground">{exc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+
+                  <section className="bg-muted/30 border rounded-2xl p-6 md:p-8">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                      <Info className="text-primary" /> Cancellation Policy
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {pkg.cancellationPolicy}
+                    </p>
+                  </section>
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          {/* Right Sidebar - Sticky Booking Box */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+              <Card className="shadow-xl border-primary/20 overflow-hidden">
+                <div className="bg-primary p-4 text-primary-foreground text-center">
+                  <h3 className="font-bold text-lg">Ready to Book?</h3>
+                  <p className="text-primary-foreground/80 text-sm">Secure your spot today</p>
+                </div>
+                <CardContent className="p-6">
+                  <div className="space-y-5">
+                    <div>
+                      <label className="text-sm font-semibold mb-2 block">Select Travel Date</label>
+                      <div className="relative">
+                        <CalendarIcon className="absolute left-3 top-3 text-muted-foreground" size={18} />
+                        <select 
+                          className="w-full pl-10 p-3 border rounded-lg bg-background focus:ring-2 focus:ring-primary outline-none appearance-none font-medium"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                        >
+                          <option value="" disabled>Choose a date</option>
+                          {pkg.availableDates?.map(date => (
+                            <option key={date} value={date}>{new Date(date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-muted/50 p-4 rounded-xl border border-dashed flex justify-between items-center">
+                      <span className="text-sm font-medium text-muted-foreground">Total Price</span>
+                      <span className="text-2xl font-black text-primary">₹{pkg.pricePerPerson.toLocaleString()}</span>
+                    </div>
+
+                    <div className="flex flex-col gap-3 pt-2">
+                      <Button 
+                        size="lg" 
+                        className="w-full text-lg h-14 font-bold shadow-lg hover:shadow-xl transition-shadow"
+                        onClick={() => navigate(`/holiday-packages/book/${pkg.id}`)}
+                      >
+                        Book Now
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        className="w-full h-14 font-bold border-2"
+                        onClick={() => navigate(`/holiday-packages/enquiry/${pkg.id}`)}
+                      >
+                        Send Enquiry
+                      </Button>
+                    </div>
+                    
+                    <div className="text-center text-xs text-muted-foreground flex items-center justify-center gap-1 mt-4">
+                      <Shield size={12} /> Safe & Secure Payments
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
           
-          <div className="text-left md:text-right w-full md:w-auto p-4 bg-muted/30 md:bg-transparent rounded-lg border md:border-none">
-            <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Starting Price</p>
-            <div className="flex items-baseline gap-2 justify-start md:justify-end mb-1">
-              <p className="text-3xl font-bold text-primary" data-testid="package-detail-price">₹{pkg.pricePerPerson.toLocaleString()}</p>
-              {pkg.originalPrice > pkg.pricePerPerson && (
-                <p className="text-lg text-muted-foreground line-through">₹{pkg.originalPrice.toLocaleString()}</p>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">per person on twin sharing</p>
-            <div className="flex gap-2">
-              <Button onClick={handleWishlist} variant="outline" size="sm" className="hidden sm:flex">Add to Wishlist</Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[300px] md:h-[450px] rounded-xl overflow-hidden" data-testid="package-detail-gallery">
-          <div className="col-span-1 md:col-span-2 row-span-2 relative group cursor-pointer">
-            <img src={pkg.image} alt="Main" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-          </div>
-          {pkg.gallery?.slice(0, 4).map((img, idx) => (
-            <div key={idx} className="hidden md:block relative group cursor-pointer overflow-hidden">
-              <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            </div>
-          ))}
         </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Overview */}
-          <section id="overview" className="scroll-mt-20">
-            <h2 className="text-2xl font-bold mb-4 border-b pb-2">Overview</h2>
-            <p className="text-muted-foreground leading-relaxed mb-6">{pkg.description}</p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-muted/30 rounded-lg border text-center">
-                <Bed className="mx-auto mb-2 text-primary" size={24} />
-                <p className="text-xs text-muted-foreground font-medium uppercase">Hotel</p>
-                <p className="font-bold">{pkg.hotelCategory}</p>
-              </div>
-              <div className="p-4 bg-muted/30 rounded-lg border text-center">
-                <Utensils className="mx-auto mb-2 text-primary" size={24} />
-                <p className="text-xs text-muted-foreground font-medium uppercase">Meals</p>
-                <p className="font-bold">{pkg.mealPlan}</p>
-              </div>
-              <div className="p-4 bg-muted/30 rounded-lg border text-center">
-                <Plane className="mx-auto mb-2 text-primary" size={24} />
-                <p className="text-xs text-muted-foreground font-medium uppercase">Flights</p>
-                <p className="font-bold">{pkg.flightIncluded ? "Included" : "Excluded"}</p>
-              </div>
-              <div className="p-4 bg-muted/30 rounded-lg border text-center">
-                <Shield className="mx-auto mb-2 text-primary" size={24} />
-                <p className="text-xs text-muted-foreground font-medium uppercase">Type</p>
-                <p className="font-bold">{pkg.packageType}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Itinerary */}
-          <section id="itinerary" className="scroll-mt-20">
-            <h2 className="text-2xl font-bold mb-4 border-b pb-2">Itinerary</h2>
-            <div className="space-y-4" data-testid="package-itinerary-accordion">
-              {pkg.itinerary?.map((day, idx) => (
-                <div key={idx} className="border rounded-lg overflow-hidden">
-                  <button 
-                    className="w-full flex items-center justify-between p-4 bg-muted/10 hover:bg-muted/30 transition-colors text-left"
-                    onClick={() => setOpenAccordion(openAccordion === idx ? null : idx)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="bg-primary text-primary-foreground font-bold px-3 py-1 rounded text-sm min-w-[60px] text-center">
-                        Day {day.day}
-                      </div>
-                      <h4 className="font-bold text-lg">{day.title}</h4>
-                    </div>
-                    <span className="text-2xl text-muted-foreground leading-none">{openAccordion === idx ? "−" : "+"}</span>
-                  </button>
-                  {openAccordion === idx && (
-                    <div className="p-4 bg-background border-t">
-                      <p className="text-muted-foreground mb-4 leading-relaxed">{day.description}</p>
-                      <div className="flex flex-wrap gap-4 text-sm font-medium">
-                        <span className="flex items-center gap-1 bg-muted px-2 py-1 rounded"><Utensils size={14}/> {day.meals?.join(", ")}</span>
-                        <span className="flex items-center gap-1 bg-muted px-2 py-1 rounded"><Bed size={14}/> Overnight in {day.stay}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Inclusions & Exclusions */}
-          <section id="inclusions" className="scroll-mt-20">
-            <h2 className="text-2xl font-bold mb-4 border-b pb-2">Inclusions & Exclusions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-green-100 bg-green-50/30">
-                <CardHeader className="pb-3 border-b border-green-100">
-                  <CardTitle className="text-green-700 flex items-center gap-2">
-                    <Check size={20} /> What's Included
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4" data-testid="package-inclusions-list">
-                  <ul className="space-y-3">
-                    {pkg.inclusions?.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <Check size={16} className="text-green-500 mt-0.5 shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-red-100 bg-red-50/30">
-                <CardHeader className="pb-3 border-b border-red-100">
-                  <CardTitle className="text-red-700 flex items-center gap-2">
-                    <X size={20} /> What's Excluded
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4" data-testid="package-exclusions-list">
-                  <ul className="space-y-3">
-                    {pkg.exclusions?.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <X size={16} className="text-red-400 mt-0.5 shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
-
-          {/* Policies */}
-          <section id="policies" className="scroll-mt-20">
-            <h2 className="text-2xl font-bold mb-4 border-b pb-2">Policies & Info</h2>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-bold flex items-center gap-2 mb-1"><Info size={16} className="text-primary"/> Cancellation Policy</h4>
-                <p className="text-sm text-muted-foreground">{pkg.cancellationPolicy}</p>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* Sidebar Sticky Booking Card */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-24 border-primary/20 shadow-lg">
-            <CardHeader className="bg-muted/30 border-b pb-4">
-              <CardTitle>Book this Package</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="mb-6">
-                <label className="block text-sm font-bold mb-2">Select Departure Date</label>
-                <select 
-                  className="w-full border rounded-md p-3 outline-none focus:ring-2 focus:ring-primary bg-background"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  data-testid="package-available-date"
-                >
-                  <option value="" disabled>Select Date</option>
-                  {pkg.availableDates?.map(date => (
-                    <option key={date} value={date}>{new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="bg-primary/5 p-4 rounded-lg mb-6 border border-primary/10">
-                <div className="flex justify-between mb-2 text-sm">
-                  <span>Price per adult</span>
-                  <span className="font-bold">₹{pkg.pricePerPerson.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Taxes & Fees</span>
-                  <span>Calculated next step</span>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => navigate(`/holiday-packages/booking/${pkg.id}`, { state: { selectedDate } })} 
-                  className="w-full h-12 text-lg font-bold"
-                  data-testid="package-detail-book-button"
-                  disabled={!selectedDate}
-                >
-                  Proceed to Book
-                </Button>
-                <Button 
-                  onClick={() => navigate(`/holiday-packages/enquiry/${pkg.id}`)} 
-                  variant="outline" 
-                  className="w-full h-12"
-                  data-testid="package-detail-enquire-button"
-                >
-                  Request a Call Back
-                </Button>
-              </div>
-              
-              <p className="text-xs text-center text-muted-foreground mt-4">
-                You won't be charged yet. Secure your spot today!
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      
-      {/* Similar Packages */}
-      <section className="mt-16 border-t pt-12">
-        <h2 className="text-2xl font-bold mb-6">Similar Packages You Might Like</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {holidayPackages?.filter(p => p.destination === pkg.destination && p.id !== pkg.id).slice(0, 3).map(similarPkg => (
-            <HolidayPackageCard key={similarPkg.id} pkg={similarPkg} />
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

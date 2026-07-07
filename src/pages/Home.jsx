@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import SearchTabs from "@/components/common/SearchTabs";
 
 export default function Home() {
+  const navigate = useNavigate();
   return (
     <div className="pb-16">
       {/* Hero Section */}
@@ -33,7 +35,12 @@ export default function Home() {
             { id: 3, name: "Tokyo, Japan", img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=800&auto=format&fit=crop" },
             { id: 4, name: "New York, USA", img: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=800&auto=format&fit=crop" },
           ].map(dest => (
-            <div key={dest.id} className="group relative rounded-xl overflow-hidden cursor-pointer shadow-md">
+            <div 
+              key={dest.id} 
+              className="group relative rounded-xl overflow-hidden cursor-pointer shadow-md"
+              onClick={() => navigate(`/destinations/${dest.name.split(',')[0]}`)}
+              data-testid={`popular-destination-${dest.id}`}
+            >
               <div className="aspect-[4/5] w-full">
                 <img src={dest.img} alt={dest.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
               </div>

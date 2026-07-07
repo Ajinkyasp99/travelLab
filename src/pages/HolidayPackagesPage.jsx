@@ -1,16 +1,26 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, MapPin, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HolidayPackageCard } from "@/components/packages/HolidayPackageCard";
 // We'll import the data once it's created. Using a fallback if not available yet.
 import { holidayPackages as defaultPackages } from "@/data/holidayPackages";
+import { useLocation } from "react-router-dom";
 
 export default function HolidayPackagesPage() {
+  const location = useLocation();
   const packages = defaultPackages || [];
   
   // States
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("search")) {
+      setSearchQuery(params.get("search") || "");
+    }
+  }, [location.search]);
+
   const [destinationFilter, setDestinationFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [durationFilter, setDurationFilter] = useState("");
