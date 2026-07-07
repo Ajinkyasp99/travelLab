@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, ArrowRightLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SearchTabs from "@/components/common/SearchTabs";
 
 export default function Flights() {
   const { toast } = useToast();
@@ -22,23 +23,38 @@ export default function Flights() {
     if (params.get("search")) {
       setDestination(params.get("search"));
     }
+    if (params.get("origin")) {
+      setOrigin(params.get("origin"));
+    }
   }, [location.search]);
 
   const filteredFlights = flights.filter(flight => {
     const matchOrigin = flight.origin.toLowerCase().includes(origin.toLowerCase());
     const matchDest = flight.destination.toLowerCase().includes(destination.toLowerCase());
-    const matchAirline = selectedAirlines.length === 0 || selectedAirlines.includes(flight.airline);
-    const matchStops = selectedStops.length === 0 || selectedStops.includes(flight.stops);
-    return matchOrigin && matchDest && matchAirline && matchStops;
+    const matchAirlines = selectedAirlines.length === 0 || selectedAirlines.includes(flight.airline);
+    
+    // Stop logic mapping
+    const flightStopsMap = {
+      'Non-stop': 0,
+      '1 Stop': 1,
+      '2+ Stops': 2
+    };
+    
+    const matchStops = selectedStops.length === 0 || selectedStops.some(stopLabel => {
+      if (stopLabel === '2+ Stops') return flight.stops >= 2;
+      return flight.stops === flightStopsMap[stopLabel];
+    });
+
+    return matchOrigin && matchDest && matchAirlines && matchStops;
   }).sort((a, b) => {
     if (sortBy === "Cheapest First") return a.price - b.price;
     if (sortBy === "Fastest First") {
-      const durationA = parseInt(a.duration.split('h')[0]) * 60 + parseInt(a.duration.split(' ')[1].split('m')[0]);
-      const durationB = parseInt(b.duration.split('h')[0]) * 60 + parseInt(b.duration.split(' ')[1].split('m')[0]);
-      return durationA - durationB;
+      // Very basic duration sort assuming "Xh Ym" format
+      const durA = parseInt(a.duration.split('h')[0]);
+      const durB = parseInt(b.duration.split('h')[0]);
+      return durA - durB;
     }
-    if (sortBy === "Early Departure") return new Date(a.departureTime) - new Date(b.departureTime);
-    if (sortBy === "Late Departure") return new Date(b.departureTime) - new Date(a.departureTime);
+    if (sortBy === "Earliest Departure") return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
     return 0;
   });
 
@@ -167,12 +183,28 @@ export default function Flights() {
                 key={flight.id} 
                 flight={flight} 
                 onBook={(id) => {
-                  const bkgId = `BKG-FL-${Math.floor(Math.random() * 1000000)}`;
+                  const currentUser = JSON.parse(localStorage.getItem("travel_test_lab_current_user"));
+                  if (!currentUser) return alert("Please login first!");
+                  
+                  const existingBookings = JSON.parse(localStorage.getItem("travel_test_lab_bookings") || "[]");
+                  const newBooking = {
+                    id: `b_${Date.now()}`,
+                    userId: currentUser.id,
+                    bookingType: 'flight',
+                    details: { type: 'flight', origin: flight.origin, destination: flight.destination, name: flight.airline },
+                    packageTitle: `Flight: ${flight.origin} to ${flight.destination}`,
+                    date: flight.departureTime,
+                    amount: flight.price,
+                    status: 'upcoming'
+                  };
+                  localStorage.setItem("travel_test_lab_bookings", JSON.stringify([...existingBookings, newBooking]));
+                  
                   toast({
                     title: "Booking Successful!",
-                    description: `Your flight booking number is ${bkgId}`,
+                    description: `Your flight booking has been confirmed!`,
                     variant: "default",
                   });
+                  setTimeout(() => { window.location.hash = "#/my-trips"; }, 500);
                 }} 
               />
             ))

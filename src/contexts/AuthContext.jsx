@@ -6,8 +6,8 @@ export const USERS_KEY = "travel_test_lab_users";
 export const CURRENT_USER_KEY = "travel_test_lab_current_user";
 
 const defaultUsers = [
-  { id: 1, name: "Tester", email: "tester@example.com", password: "Test@123", role: "User" },
-  { id: 2, name: "Admin", email: "admin@example.com", password: "Admin@123", role: "Admin" },
+  { id: 1, name: "Shweta", email: "shweta@tester.com", password: "Test@123", role: "User" },
+  { id: 2, name: "Admin", email: "admin@tester.com", password: "Admin@123", role: "Admin" },
 ];
 
 export function AuthProvider({ children }) {
@@ -15,9 +15,9 @@ export function AuthProvider({ children }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Initialize users if not present
+    // Initialize users if not present or if they still have the old default users
     const existingUsers = localStorage.getItem(USERS_KEY);
-    if (!existingUsers) {
+    if (!existingUsers || existingUsers.includes("tester@example.com")) {
       localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
     }
 

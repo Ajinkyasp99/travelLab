@@ -17,7 +17,15 @@ export default function HotelDetail() {
   }
 
   const handleBookRoom = (roomId) => {
-    navigate("/payment", { state: { type: 'hotel', itemId: roomId, hotelId: id } });
+    const room = hotel.rooms.find(r => r.id === roomId);
+    navigate("/payment", { state: { 
+      type: 'hotel', 
+      bookingType: 'hotel',
+      itemId: roomId, 
+      hotelId: id,
+      name: hotel.name,
+      totalAmount: room ? room.price : 5000
+    } });
   };
 
   return (

@@ -18,6 +18,7 @@ export const hotels = Array.from({ length: 60 }, (_, i) => ({
   id: `hotel_${i+1}`,
   name: `${hotelBrands[i % hotelBrands.length]} ${hotelSuffixes[i % hotelSuffixes.length]}`,
   destinationId: `dest_${(i % 10) + 1}`,
+  location: ["Goa", "Mumbai", "Delhi", "Pune", "Bangalore", "Jaipur", "Kerala", "Manali"][i % 8],
   address: `${100 + i} Main Street`,
   starRating: (i % 3) + 3,
   userRating: ((i % 5) * 0.5 + 3).toFixed(1),

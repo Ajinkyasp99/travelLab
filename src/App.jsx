@@ -1,4 +1,5 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -23,27 +24,33 @@ import TestingPlayground from "./pages/TestingPlayground";
 import DestinationDetail from "./pages/DestinationDetail";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
+function IndexRoute() {
+  const { currentUser } = useAuth();
+  return currentUser ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
+}
+
 function App() {
   return (
     <HashRouter>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="destinations/:name" element={<DestinationDetail />} />
+          <Route index element={<IndexRoute />} />
+          <Route path="home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="destinations/:name" element={<ProtectedRoute><DestinationDetail /></ProtectedRoute>} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
-          <Route path="hotels" element={<Hotels />} />
-          <Route path="hotels/:id" element={<HotelDetail />} />
-          <Route path="flights" element={<Flights />} />
-          <Route path="trains" element={<Trains />} />
-          <Route path="buses" element={<Buses />} />
-          <Route path="cabs" element={<Cabs />} />
-          <Route path="packages" element={<Packages />} />
+          <Route path="hotels" element={<ProtectedRoute><Hotels /></ProtectedRoute>} />
+          <Route path="hotels/:id" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
+          <Route path="flights" element={<ProtectedRoute><Flights /></ProtectedRoute>} />
+          <Route path="trains" element={<ProtectedRoute><Trains /></ProtectedRoute>} />
+          <Route path="buses" element={<ProtectedRoute><Buses /></ProtectedRoute>} />
+          <Route path="cabs" element={<ProtectedRoute><Cabs /></ProtectedRoute>} />
+          <Route path="packages" element={<ProtectedRoute><Packages /></ProtectedRoute>} />
           
-          <Route path="holiday-packages" element={<HolidayPackagesPage />} />
-          <Route path="holiday-packages/:packageId" element={<HolidayPackageDetailPage />} />
+          <Route path="holiday-packages" element={<ProtectedRoute><HolidayPackagesPage /></ProtectedRoute>} />
+          <Route path="holiday-packages/:packageId" element={<ProtectedRoute><HolidayPackageDetailPage /></ProtectedRoute>} />
           <Route path="holiday-packages/booking/:packageId" element={<ProtectedRoute><HolidayPackageBookingPage /></ProtectedRoute>} />
-          <Route path="holiday-packages/enquiry/:packageId" element={<HolidayPackageEnquiryPage />} />
+          <Route path="holiday-packages/enquiry/:packageId" element={<ProtectedRoute><HolidayPackageEnquiryPage /></ProtectedRoute>} />
           
           
           <Route path="payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />

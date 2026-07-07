@@ -1,9 +1,11 @@
-export const trains = Array.from({ length: 20 }, (_, i) => ({
+const cities = ["Pune", "Goa", "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad"];
+
+export const trains = Array.from({ length: 40 }, (_, i) => ({
   id: `train_${i+1}`,
   trainName: `Express ${i+1}`,
   trainNumber: `${12000 + i}`,
-  origin: i % 2 === 0 ? 'NDLS' : 'CSMT',
-  destination: i % 2 === 0 ? 'CSMT' : 'MAS',
+  origin: cities[i % cities.length],
+  destination: cities[(i + 3) % cities.length],
   departureTime: new Date(Date.now() + i * 86400000).toISOString(),
   arrivalTime: new Date(Date.now() + i * 86400000 + 43200000).toISOString(),
   duration: '12h 0m',

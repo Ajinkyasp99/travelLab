@@ -17,22 +17,44 @@ export default function SearchTabs() {
   ];
 
   const [destination, setDestination] = useState("");
+  const [origin, setOrigin] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const { toast } = useToast();
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!destination || !fromDate || !toDate) {
+    
+    if (!destination || !fromDate || !toDate || !origin) {
       toast({
         title: "Missing Information",
-        description: "Please select a destination, from date, and to date to proceed.",
+        description: "Please fill in all required fields (From, To, and Dates) to proceed.",
         variant: "destructive",
       });
       return;
     }
     
-    const query = `?search=${encodeURIComponent(destination)}`;
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (fromDate < today) {
+      toast({
+        title: "Invalid Date",
+        description: "The From Date cannot be in the past. Please select a valid date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (toDate < fromDate) {
+      toast({
+        title: "Invalid Date",
+        description: "The To Date cannot be earlier than the From Date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let query = `?search=${encodeURIComponent(destination)}&origin=${encodeURIComponent(origin)}`;
     
     if (activeTab === "hotel") {
       navigate(`/hotels${query}`);
@@ -69,46 +91,62 @@ export default function SearchTabs() {
       </div>
       
       <div className="p-6">
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">Destination</label>
-            <input 
-              type="text" 
-              placeholder="Where are you going?" 
-              data-testid={`${activeTab}-destination-input`}
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
-            />
+        <form onSubmit={handleSearch} className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="col-span-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">From</label>
+              <input 
+                type="text" 
+                placeholder="Leaving from" 
+                data-testid={`${activeTab}-origin-input`}
+                value={origin}
+                onChange={(e) => setOrigin(e.target.value)}
+                className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
+              />
+            </div>
+            
+            <div className="col-span-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">To</label>
+              <input 
+                type="text" 
+                placeholder="Going to" 
+                data-testid={`${activeTab}-destination-input`}
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
+              />
+            </div>
+            
+            <div className="col-span-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">From Date</label>
+              <input 
+                type="date" 
+                data-testid={`${activeTab}-from-date`}
+                min={new Date().toISOString().split('T')[0]}
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
+              />
+            </div>
+
+            <div className="col-span-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">To Date</label>
+              <input 
+                type="date" 
+                data-testid={`${activeTab}-to-date`}
+                min={fromDate || new Date().toISOString().split('T')[0]}
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
+              />
+            </div>
           </div>
           
-          <div className="md:col-span-1">
-            <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">From Date</label>
-            <input 
-              type="text" 
-              placeholder="MM-DD-YYYY"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
-            />
-          </div>
-
-          <div className="md:col-span-1">
-            <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase">To Date</label>
-            <input 
-              type="text" 
-              placeholder="MM-DD-YYYY"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="w-full p-3 bg-muted/50 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" 
-            />
-          </div>
-
-          <div className="md:col-span-1 flex items-end">
+          <div className="flex justify-center mt-2">
             <button 
               type="submit" 
               data-testid={`${activeTab}-search-button`}
-              className="w-full bg-primary text-primary-foreground font-bold p-3 rounded-md hover:bg-primary/90 transition-colors text-sm h-[46px]"
+              className="w-full md:w-1/3 bg-primary text-primary-foreground font-bold p-3.5 rounded-md hover:bg-primary/90 shadow-soft hover-lift transition-all text-base tracking-wide"
             >
               Search
             </button>

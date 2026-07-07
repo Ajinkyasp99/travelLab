@@ -5,6 +5,7 @@ import { HotelCard } from "@/components/hotels/HotelCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, SlidersHorizontal, Star } from "lucide-react";
+import SearchTabs from "@/components/common/SearchTabs";
 
 export default function Hotels() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function Hotels() {
   }, [location.search]);
 
   const filteredHotels = hotels.filter(hotel => {
-    const matchSearch = hotel.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchSearch = hotel.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchPrice = hotel.pricePerNight <= priceFilter;
     const matchStars = selectedStars.length === 0 || selectedStars.includes(hotel.starRating);
     const matchAmenities = selectedAmenities.length === 0 || selectedAmenities.every(a => hotel.amenities.includes(a));
@@ -31,8 +32,8 @@ export default function Hotels() {
   }).sort((a, b) => {
     if (sortBy === "Price: Low to High") return a.pricePerNight - b.pricePerNight;
     if (sortBy === "Price: High to Low") return b.pricePerNight - a.pricePerNight;
-    if (sortBy === "Rating: High to Low") return parseFloat(b.userRating) - parseFloat(a.userRating);
-    return 0; // Recommended
+    if (sortBy === "Rating: High to Low") return b.rating - a.rating;
+    return 0; // Recommended (default)
   });
 
   const resetFilters = () => {
@@ -43,8 +44,8 @@ export default function Hotels() {
     navigate("/hotels");
   };
 
-  const handleStarChange = (star) => {
-    setSelectedStars(prev => prev.includes(star) ? prev.filter(s => s !== star) : [...prev, star]);
+  const handleStarChange = (stars) => {
+    setSelectedStars(prev => prev.includes(stars) ? prev.filter(s => s !== stars) : [...prev, stars]);
   };
 
   const handleAmenityChange = (amenity) => {
