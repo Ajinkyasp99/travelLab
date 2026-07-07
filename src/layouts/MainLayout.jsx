@@ -268,9 +268,9 @@ export default function MainLayout() {
             Your premium platform for testing automated UI and booking flows.
           </p>
           <div className="flex justify-center gap-6 text-sm font-medium text-foreground/60">
-            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact Support</a>
+            <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/contact" className="hover:text-primary transition-colors">Contact Support</Link>
           </div>
           <div className="mt-12 text-sm text-muted-foreground/60">
             © {new Date().getFullYear()} TravelTestLab. All rights reserved.
